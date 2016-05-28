@@ -2,20 +2,57 @@
 #include <stdlib.h>
 #include <string.h>
 
+//Comment below if your system is Linux
+#define P_WIN
+
 #define SCRIPT_MAX_LENGTH 128
 #define TYPE_CONSOLE 0
 #define TYPE_EXPLAIN 1
 
-#define THIS_VERSION "ver0.02"
+#ifdef P_WIN
+#define CLS_SCREEN "cls"
+#else
+#define CLS_SCREEN "clear"
+#endif
+
+#define THIS_VERSION "ver0.03"
 
 FILE* f;
 double numBuf;
 char* strBuf;
+char* codeBuf;
+char* scpBuf;
 char* scpHead;
 char* scpBody;
 char* strPtr;
 int lines = 1;
 int jmpFlag = 0;
+
+void encode(char* source, char* code) {
+	int i = 0, j = 0, flag = 1;
+	while (1) {
+		strBuf[i] = source[i] + code[j];
+		if (source[i + 1] == '\0') break;
+		i += 1;
+		if (code[j + 1] == '\0') flag = -flag;
+		else if (j < 0) flag = -flag;
+		j += flag;
+	}
+	strBuf[i + 1] = '\0';
+}
+
+void decode(char* source, char* code) {
+	int i = 0, j = 0, flag = 1;
+	while (1) {
+		strBuf[i] = source[i] - code[j];
+		if (source[i + 1] == '\0') break;
+		i += 1;
+		if (code[j + 1] == '\0') flag = -flag;
+		else if (j < 0) flag = -flag;
+		j += flag;	
+	}
+	strBuf[i + 1] = '\0';
+}
 
 int execute(char* script, int type) {
 	sscanf(script, "%s %s", scpHead, scpBody);
@@ -24,6 +61,10 @@ int execute(char* script, int type) {
 			printf("%s ", THIS_VERSION);
 		} else if (strcmp(scpBody, "_mem_") == 0) {
 			printf("%f ", numBuf);
+		} else if (strcmp(scpBody, "_smem_") == 0) {
+			printf("%s", strBuf);
+		} else if (strcmp(scpBody, "_code_") == 0) {
+			printf("%s", codeBuf);
 		} else {
 			printf("%s ", scpBody);
 		}
@@ -33,11 +74,35 @@ int execute(char* script, int type) {
 			printf("%s\n", THIS_VERSION);
 		} else if (strcmp(scpBody, "_mem_") == 0) {
 			printf("%f\n", numBuf);
+		} else if (strcmp(scpBody, "_smem_") == 0) {
+			printf("%s\n", strBuf);
+		} else if (strcmp(scpBody, "_code_") == 0) {
+			printf("%s\n", codeBuf);
 		} else {
 			printf("%s\n", scpBody);
 		}
 	} else if (strcmp(scpHead, "version") == 0 || strcmp(scpHead, "ver") == 0) {
 		printf("Scripter version: %s\n", THIS_VERSION);
+	} else if (strcmp(scpHead, CLS_SCREEN) == 0) {
+		system(CLS_SCREEN);
+	} 
+	
+	else if (strcmp(scpHead, "encode") == 0) {
+		if (strcmp(scpBody, "_smem_") == 0) {
+			encode(strBuf, codeBuf);
+		} else {
+			encode(scpBody, codeBuf);
+		}
+	} else if (strcmp(scpHead, "decode") == 0) {
+		if (strcmp(scpBody, "_smem_") == 0) {
+			decode(strBuf, codeBuf);
+		} else {
+			decode(scpBody, codeBuf);
+		}
+	} else if (strcmp(scpHead, "puts") == 0) {
+		strcpy(strBuf, scpBody);
+	} else if (strcmp(scpHead, "putc") == 0) {
+		strcpy(codeBuf, scpBody);
 	}
 	
 	else if (strcmp(scpHead, "put") == 0) {
@@ -68,7 +133,7 @@ int execute(char* script, int type) {
 		} else {
 			int tmplines = 1;
 			while (1) {
-				strPtr = fgets(strBuf, SCRIPT_MAX_LENGTH, ft);
+				strPtr = fgets(scpBuf, SCRIPT_MAX_LENGTH, ft);
 				if (strPtr == NULL)
 					break;
 				if (jmpFlag) {
@@ -105,25 +170,30 @@ void cliBuild() {
 	printf("Usage: Scripter <script name>\n\n");
 	while (1) {
 		printf("%d >>> ", lines);
-		strPtr = gets(strBuf);
+		strPtr = gets(scpBuf);
 		if (jmpFlag) {
 			jmpFlag = 0;
 			lines++;
 			continue;
 		}
-		if (!execute(strBuf, TYPE_CONSOLE))
+		if (!execute(scpBuf, TYPE_CONSOLE))
 			break;
 		lines++;
 	}
 }
 
 int main(int argc, char* argv[]) {
-	strBuf = (char* )malloc(sizeof(char) * SCRIPT_MAX_LENGTH);
-	strcpy(strBuf, "_null_");
+	scpBuf = (char* )malloc(sizeof(char) * SCRIPT_MAX_LENGTH);
+	strcpy(scpBuf, "_null_");
 	scpHead = (char* )malloc(sizeof(char) * SCRIPT_MAX_LENGTH);
 	strcpy(scpHead, "_null_");
 	scpBody = (char* )malloc(sizeof(char) * SCRIPT_MAX_LENGTH);
 	strcpy(scpBody, "_null_");
+	
+	strBuf = (char* )malloc(sizeof(char) * SCRIPT_MAX_LENGTH);
+	strcpy(strBuf, "_null_");
+	codeBuf = (char* )malloc(sizeof(char) * SCRIPT_MAX_LENGTH);
+	strcpy(codeBuf, "_null_");
 
 	if (argc < 2) {
 		cliBuild();
@@ -134,7 +204,7 @@ int main(int argc, char* argv[]) {
 			return 0;
 		} else {
 			while (1) {
-				strPtr = fgets(strBuf, SCRIPT_MAX_LENGTH, f);
+				strPtr = fgets(scpBuf, SCRIPT_MAX_LENGTH, f);
 				if (strPtr == NULL)
 					break;
 				if (jmpFlag) {
@@ -151,6 +221,8 @@ int main(int argc, char* argv[]) {
 	}
 
 	free(strBuf);
+	free(codeBuf);
+	free(scpBuf);
 	free(scpHead);
 	free(scpBody);
 
