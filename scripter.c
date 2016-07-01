@@ -15,7 +15,7 @@
 #define CLS_SCREEN "clear"
 #endif
 
-#define THIS_VERSION "ver0.03"
+#define THIS_VERSION "ver0.04"
 
 FILE* f;
 double numBuf;
@@ -55,7 +55,7 @@ void decode(char* source, char* code) {
 }
 
 int execute(char* script, int type) {
-	sscanf(script, "%s %s", scpHead, scpBody);
+	sscanf(script, "%s %[^\n]", scpHead, scpBody);
 	if (strcmp(scpHead, "print") == 0) {
 		if (strcmp(scpBody, "_ver_") == 0) {
 			printf("%s ", THIS_VERSION);
