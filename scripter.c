@@ -15,7 +15,7 @@
 #define CLS_SCREEN "clear"
 #endif
 
-#define THIS_VERSION "ver0.04"
+#define THIS_VERSION "ver0.05"
 
 FILE* f;
 double numBuf;
@@ -121,7 +121,13 @@ int execute(char* script, int type) {
 		if (strcmp(scpBody, "_mem_") == 0) {
 			if (numBuf <= 0) jmpFlag = 1;
 		} else {
-			if (atof(scpBody) <= 0) jmpFlag = 1;
+			float tmp = 0;
+			sscanf(scpBody, "%f", &tmp);
+			if (tmp == atof(scpBody)) {
+				if (atof(scpBody) <= 0) jmpFlag = 1;
+			} else if (execute(scpBody, type)) {
+				if (numBuf <= 0) jmpFlag = 1;
+			}
 		}
 	}
 
@@ -141,7 +147,7 @@ int execute(char* script, int type) {
 					tmplines++;
 					continue;
 				}
-				if (!execute(strPtr, TYPE_EXPLAIN))
+				if (!execute(strPtr, type))
 					break;
 				tmplines++;
 			}
@@ -157,7 +163,7 @@ int execute(char* script, int type) {
 		}
 	} else {
 		printf("Syntax error, in line %d: %s %s\n", lines, scpHead, scpBody);
-		printf("Script aborted.\n");
+		if (type == TYPE_CONSOLE) printf("Script aborted.\n");
 		return type == TYPE_CONSOLE ? 1 : (type == TYPE_EXPLAIN ? 0 : 1);
 	}
 	return 1;
