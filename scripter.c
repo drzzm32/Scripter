@@ -15,7 +15,7 @@
 #define CLS_SCREEN "clear"
 #endif
 
-#define THIS_VERSION "ver0.05"
+#define THIS_VERSION "ver0.06"
 
 FILE* f;
 double numBuf;
@@ -163,7 +163,7 @@ int execute(char* script, int type) {
 		}
 	} else {
 		printf("Syntax error, in line %d: %s %s\n", lines, scpHead, scpBody);
-		if (type == TYPE_CONSOLE) printf("Script aborted.\n");
+		if (type == TYPE_EXPLAIN) printf("Script aborted.\n");
 		return type == TYPE_CONSOLE ? 1 : (type == TYPE_EXPLAIN ? 0 : 1);
 	}
 	return 1;
