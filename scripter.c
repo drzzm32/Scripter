@@ -121,10 +121,8 @@ int execute(char* script, int type) {
 		if (strcmp(scpBody, "_mem_") == 0) {
 			if (numBuf <= 0) jmpFlag = 1;
 		} else {
-			float tmp = 0;
-			sscanf(scpBody, "%f", &tmp);
-			if (tmp == atof(scpBody)) {
-				if (atof(scpBody) <= 0) jmpFlag = 1;
+			if (sscanf(scpBody, "%f", &numBuf)) {
+				if (numBuf <= 0) jmpFlag = 1;
 			} else if (execute(scpBody, type)) {
 				if (numBuf <= 0) jmpFlag = 1;
 			}
